@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
+Copyright © 2020 Grant Buskey gbuskey@ncsu.edu
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,28 +17,18 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/gbuskey/Jupiter/cmd/forecast"
+	"github.com/gbuskey/Jupiter/cmd/history"
 	"github.com/spf13/cobra"
 	"os"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
-
-var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "Jupiter",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Short: "Jupiter is a CLI used for weather data",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -51,37 +41,26 @@ func Execute() {
 }
 
 func init() {
+	// Run any functions desired on startup
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	//Add custom commands
+	forecastCmd := forecast.NewForecastCmd()
+	rootCmd.AddCommand(forecastCmd)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.Jupiter.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	historyCmd := history.NewHistoryCmd()
+	rootCmd.AddCommand(historyCmd)
 }
 
-// initConfig reads in config file and ENV variables if set.
+// initConfig reads in environment variables
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
 
-		// Search config in home directory with name ".Jupiter" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".Jupiter")
-	}
+	// Search config in home directory with name ".Jupiter" (without extension).
+	viper.AddConfigPath("./")
+	viper.SetConfigName(".Jupiter")
 
+	// Link environment variables to flags
+	viper.SetEnvPrefix("JUPITER")
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
