@@ -43,6 +43,13 @@ func init() {
 	forecastCmd.Flags().String("city", "", "The city you are interested in. Must provide city at a minimum.")
 	forecastCmd.Flags().String("state-code", "", "ONLY VALID FOR US CITIES. The state your desired city resides in.")
 	forecastCmd.Flags().String("country-code", "", "The country your state and city resides in.")
+	forecastCmd.Flags().String("apikey", "", "REQUIRED. Must provide APIKey to fulfil request")
+
+
+	err := viper.BindPFlags(forecastCmd.Flags())
+	if err != nil {
+		fmt.Errorf("error loading flags. error: %s", err)
+	}
 }
 func runE(cmd *cobra.Command, args []string) error {
 	// get a hold of all of our flags / env vars
@@ -59,14 +66,29 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if apikey == "" {
+		return fmt.Errorf("apikey cannot be nil")
+	}
+
 	// Gets current weather by default, five day forecast if desired
 	if getCurrentWeather {
 		requestUrl := fmt.Sprintf("api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", requestParams, apikey)
-		makeRequest(requestUrl)
+		resp, err := makeRequest(requestUrl)
+
+		if err != nil {
+			return fmt.Errorf("invalid request. error: %s", err)
+		}
+		fmt.Print(resp)
 	}
+
 	if getFiveDayForecast {
 		requestUrl := fmt.Sprintf("api.openweathermap.org/data/2.5/forecast?q=%sappid=%s", requestParams, apikey)
-		makeRequest(requestUrl)
+		resp, err := makeRequest(requestUrl)
+
+		if err != nil {
+			return fmt.Errorf("invalid request. error: %s", err)
+		}
+		fmt.Print(resp)
 	}
 
 	return nil
@@ -98,11 +120,17 @@ func getRequestParams(city, stateCode, countryCode string) (string, error) {
 	return paramStr + "," + countryCode, nil
 
 }
-func makeRequest(requestUrl string) {
+func makeRequest(requestUrl string) (string, error){
 
 	// make the request
-	req, _ := http.NewRequest("GET", requestUrl, nil)
-	res, _ := http.DefaultClient.Do(req)
+	req, err := http.NewRequest("GET", requestUrl, nil)
+	if err != nil {
+		return "", err
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
 
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
@@ -110,6 +138,7 @@ func makeRequest(requestUrl string) {
 	// print out the response
 	fmt.Println(res)
 	fmt.Println(string(body))
+	return "", nil
 }
 
 func NewForecastCmd() *cobra.Command {

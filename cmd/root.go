@@ -41,30 +41,13 @@ func Execute() {
 }
 
 func init() {
-	// Run any functions desired on startup
-	cobra.OnInitialize(initConfig)
-
 	//Add custom commands
 	forecastCmd := forecast.NewForecastCmd()
 	rootCmd.AddCommand(forecastCmd)
 
 	historyCmd := history.NewHistoryCmd()
 	rootCmd.AddCommand(historyCmd)
-}
 
-// initConfig reads in environment variables
-func initConfig() {
-
-	// Search config in home directory with name ".Jupiter" (without extension).
-	viper.AddConfigPath("./")
-	viper.SetConfigName(".Jupiter")
-
-	// Link environment variables to flags
-	viper.SetEnvPrefix("JUPITER")
+	// Run any functions desired on startup
 	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }
