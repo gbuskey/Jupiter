@@ -49,14 +49,14 @@ func init() {
 	forecastCmd.Flags().String("state-code", "", "ONLY VALID FOR US CITIES. The state your desired city resides in.")
 	forecastCmd.Flags().String("country-code", "", "The country your state and city resides in.")
 	forecastCmd.Flags().String("apikey", "", "REQUIRED. Must provide APIKey to fulfil request")
-}
-func runE(cmd *cobra.Command, args []string) error {
+
 	// read in flags
 	err := viper.BindPFlags(forecastCmd.Flags())
 	if err != nil {
-		return fmt.Errorf("error loading flags. error: %s", err)
+		fmt.Print(fmt.Errorf("error loading flags. error: %s", err))
 	}
-
+}
+func runE(cmd *cobra.Command, args []string) error {
 	// get a hold of all of our flags / env vars
 	apikey := viper.GetString("APIKey")
 	currentWeather := viper.GetBool("now")
