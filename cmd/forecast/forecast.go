@@ -32,6 +32,11 @@ or the predicted weather report in a certain area`,
 	RunE: runE,
 }
 
+// NewForecastCmd returnns a new command line instancce
+func NewForecastCmd() *cobra.Command {
+	return forecastCmd
+}
+
 // set up all flagas
 func init() {
 	// set any default values for our flags
@@ -45,17 +50,17 @@ func init() {
 	forecastCmd.Flags().String("country-code", "", "The country your state and city resides in.")
 	forecastCmd.Flags().String("apikey", "", "REQUIRED. Must provide APIKey to fulfil request")
 
-
+	// read in flags
 	err := viper.BindPFlags(forecastCmd.Flags())
 	if err != nil {
-		fmt.Errorf("error loading flags. error: %s", err)
+		fmt.Print(fmt.Errorf("error loading flags. error: %s", err))
 	}
 }
 func runE(cmd *cobra.Command, args []string) error {
 	// get a hold of all of our flags / env vars
 	apikey := viper.GetString("APIKey")
-	getCurrentWeather := viper.GetBool("now")
-	getFiveDayForecast := viper.GetBool("five-day")
+	currentWeather := viper.GetBool("now")
+	fiveDayForecast := viper.GetBool("five-day")
 	city := viper.GetString("city")
 	stateCode := viper.GetString("state-code")
 	countryCode := viper.GetString("country-code")
@@ -71,24 +76,18 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Gets current weather by default, five day forecast if desired
-	if getCurrentWeather {
-		requestUrl := fmt.Sprintf("api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", requestParams, apikey)
-		resp, err := makeRequest(requestUrl)
-
+	if currentWeather {
+		err = getCurrentWeather(requestParams, apikey)
 		if err != nil {
-			return fmt.Errorf("invalid request. error: %s", err)
+			return err
 		}
-		fmt.Print(resp)
 	}
 
-	if getFiveDayForecast {
-		requestUrl := fmt.Sprintf("api.openweathermap.org/data/2.5/forecast?q=%sappid=%s", requestParams, apikey)
-		resp, err := makeRequest(requestUrl)
-
+	if fiveDayForecast {
+		err = getFiveDayForecast(requestParams, apikey)
 		if err != nil {
-			return fmt.Errorf("invalid request. error: %s", err)
+			return err
 		}
-		fmt.Print(resp)
 	}
 
 	return nil
@@ -120,18 +119,12 @@ func getRequestParams(city, stateCode, countryCode string) (string, error) {
 	return paramStr + "," + countryCode, nil
 
 }
-func makeRequest(requestUrl string) (string, error){
-
+func makeRequest(requestUrl string) (string, error) {
 	// make the request
-	req, err := http.NewRequest("GET", requestUrl, nil)
+	res, err := http.Get("https://" + requestUrl)
 	if err != nil {
 		return "", err
 	}
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 
@@ -141,6 +134,24 @@ func makeRequest(requestUrl string) (string, error){
 	return "", nil
 }
 
-func NewForecastCmd() *cobra.Command {
-	return forecastCmd
+func getCurrentWeather(requestParams, apikey string) error {
+	requestUrl := fmt.Sprintf("api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", requestParams, apikey)
+	resp, err := makeRequest(requestUrl)
+
+	if err != nil {
+		return fmt.Errorf("invalid current weather request. error: %s", err)
+	}
+	fmt.Print(resp)
+	return nil
+}
+
+func getFiveDayForecast(requestParams, apikey string) error {
+	requestUrl := fmt.Sprintf("api.openweathermap.org/data/2.5/forecast?q=%sappid=%s", requestParams, apikey)
+	resp, err := makeRequest(requestUrl)
+
+	if err != nil {
+		return fmt.Errorf("invalid five day request. error: %s", err)
+	}
+	fmt.Print(resp)
+	return nil
 }
