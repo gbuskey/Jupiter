@@ -15,7 +15,7 @@ make
 ## Using Jupiter
 
 ```bash
-./bin/jupiter 
+$ ./bin/jupiter 
 Jupiter is a CLI used for weather data
 
 Usage:
@@ -24,7 +24,6 @@ Usage:
 Available Commands:
   forecast    Used to report information about current weather data
   help        Help about any command
-  history     A brief description of your command
 
 Flags:
   -h, --help   help for Jupiter

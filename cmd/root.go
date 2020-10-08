@@ -18,7 +18,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/gbuskey/Jupiter/cmd/forecast"
-	"github.com/gbuskey/Jupiter/cmd/history"
 	"github.com/spf13/cobra"
 	"os"
 
@@ -44,9 +43,6 @@ func init() {
 	//Add custom commands
 	forecastCmd := forecast.NewForecastCmd()
 	rootCmd.AddCommand(forecastCmd)
-
-	historyCmd := history.NewHistoryCmd()
-	rootCmd.AddCommand(historyCmd)
 
 	// Run any functions desired on startup
 	viper.AutomaticEnv() // read in environment variables that match
